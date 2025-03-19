@@ -1,6 +1,7 @@
-package ru.derendyaev.mospolytech.gigaChat.role.roleImpl;
+package gigaChat.role.roleImpl;
 
-import ru.derendyaev.mospolytech.gigaChat.role.RolePrompt;
+
+import gigaChat.role.RolePrompt;
 
 public class AssistantRolePrompt extends RolePrompt {
 

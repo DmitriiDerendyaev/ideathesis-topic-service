@@ -1,7 +1,7 @@
-package ru.derendyaev.mospolytech.gigaChat.role;
+package gigaChat.role;
 
 public interface RolePromptAction {
 
-    public String getBachelorRolePrompt();
-    public String getMasterRolePrompt();
+    String getBachelorRolePrompt();
+    String getMasterRolePrompt();
 }

@@ -1,4 +1,4 @@
-package ru.derendyaev.mospolytech.gigaChat.models;
+package gigaChat.models;
 
 public final class GigaChatConstant {
 

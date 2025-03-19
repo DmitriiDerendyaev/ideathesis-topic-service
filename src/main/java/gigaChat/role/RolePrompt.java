@@ -1,4 +1,4 @@
-package ru.derendyaev.mospolytech.gigaChat.role;
+package gigaChat.role;
 
 public abstract class RolePrompt {
 

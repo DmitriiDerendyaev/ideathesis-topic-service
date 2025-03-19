@@ -1,5 +1,6 @@
-package ru.derendyaev.mospolytech.restUtils;
+package restUtils;
 
+import exceptions.TokenException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,20 +8,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import ru.derendyaev.mospolytech.exceptions.TokenException;
-import ru.derendyaev.mospolytech.gigaChat.models.auth.GigaToken;
-import ru.derendyaev.mospolytech.gigaChat.models.message.GigaMessageRequest;
-import ru.derendyaev.mospolytech.gigaChat.models.message.GigaMessageResponse;
-import ru.derendyaev.mospolytech.gigaChat.models.message.Message;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static ru.derendyaev.mospolytech.gigaChat.models.GigaChatConstant.*;
+import gigaChat.models.auth.GigaToken;
+import gigaChat.models.message.GigaMessageRequest;
+import gigaChat.models.message.GigaMessageResponse;
+import gigaChat.models.message.Message;
+
+import static gigaChat.models.GigaChatConstant.*;
+
 
 @Slf4j
 @Service

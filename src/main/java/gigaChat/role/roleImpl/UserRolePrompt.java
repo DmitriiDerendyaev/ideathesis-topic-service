@@ -1,7 +1,8 @@
-package ru.derendyaev.mospolytech.gigaChat.role.roleImpl;
+package gigaChat.role.roleImpl;
 
-import ru.derendyaev.mospolytech.gigaChat.role.RolePrompt;
-import ru.derendyaev.mospolytech.gigaChat.role.RolePromptAction;
+
+import gigaChat.role.RolePrompt;
+import gigaChat.role.RolePromptAction;
 
 public class UserRolePrompt extends RolePrompt implements RolePromptAction {
 

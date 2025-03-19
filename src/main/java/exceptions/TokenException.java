@@ -1,4 +1,4 @@
-package ru.derendyaev.mospolytech.exceptions;
+package exceptions;
 
 public class TokenException extends RuntimeException {
     public TokenException(String message) {

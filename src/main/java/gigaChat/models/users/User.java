@@ -1,4 +1,4 @@
-package ru.derendyaev.mospolytech.gigaChat.models.users;
+package gigaChat.models.users;
 
 import lombok.Data;
 
