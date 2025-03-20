@@ -1,0 +1,33 @@
+app:
+  values:
+    api:
+      giga-chat:
+        base-url:
+          auth: "https://ngw.devices.sberbank.ru:9443"
+          chat: "https://gigachat.devices.sberbank.ru"
+        chat-settings:
+          scope: "GIGACHAT_API_PERS"
+        auth-key: "${APP_GIGA_CHAT_AUTH_KEY}"
+    bot:
+      token: "${APP_BOT_TOKEN}"
+
+spring:
+  datasource:
+    url: jdbc:postgresql://212.192.215.217:5432/ideathesis
+    username: "${DB_USERNAME}"
+    password: "${DB_PASSWORD}"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10  # ???????????: ????????? ???? ??????????
+  jpa:
+    hibernate:
+      ddl-auto: update  # ????? ????????????: create, create-drop, validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+#  sql:
+#    init:
+#      mode: always
+#      schema-locations: classpath:schema.sql
+  application:
+    name: ideathesis-topic-service
