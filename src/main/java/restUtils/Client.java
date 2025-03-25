@@ -1,6 +1,5 @@
 package restUtils;
 
-import exceptions.TokenException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,11 +95,6 @@ public class Client {
         return UUID.randomUUID().toString();
     }
 
-    private void checkToken(String token) {
-        if (token == null) {
-            throw new TokenException("Expired token!");
-        }
-    }
 
 
 }
