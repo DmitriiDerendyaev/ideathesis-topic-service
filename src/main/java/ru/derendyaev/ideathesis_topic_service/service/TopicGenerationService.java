@@ -64,24 +64,57 @@ public class TopicGenerationService {
 
     private List<GeneratedTopicDto> parseTopicsFromGigaChat(String rawText) {
         List<GeneratedTopicDto> topics = new ArrayList<>();
-        // Предполагаем, что ответ в формате:
-        // ### Тема 1\n**Описание**: текст\n**Навыки**: навык1, навык2
-        Pattern pattern = Pattern.compile("### (.+?)\\n\\*\\*Описание\\*\\*: (.+?)\\n\\*\\*Навыки\\*\\*: (.+?)(?:\\n|$)", Pattern.DOTALL);
+        // Основной шаблон для нового формата с актуальностью и проблемами
+        Pattern pattern = Pattern.compile(
+                "###\\s*Тема\\s*\\d+\\s*(?::\\s*)?(.*?)\\n" +
+                        "\\*\\*Описание\\*\\*:\\s*(.+?)\\n" +
+                        "(?:\\*\\*Актуальность\\*\\*:\\s*(.+?)\\n)?" +
+                        "(?:\\*\\*Проблемы, которые решает проект\\*\\*:\\s*(.+?)\\n)?" +
+                        "\\*\\*Навыки\\*\\*:\\s*(.+?)(?:\\n\\n|\\n?$)",
+                Pattern.DOTALL
+        );
         Matcher matcher = pattern.matcher(rawText);
 
         while (matcher.find()) {
             GeneratedTopicDto dto = new GeneratedTopicDto();
             dto.setTitle(matcher.group(1).trim());
             dto.setDescription(matcher.group(2).trim());
-            dto.setRecommendedSkills(matcher.group(3).split(",\\s*"));
+            // Актуальность и проблемы могут отсутствовать
+            dto.setActuality(matcher.group(3) != null ? matcher.group(3).trim() : "Не указана");
+            dto.setProblems(matcher.group(4) != null ? matcher.group(4).trim() : "Не указаны");
+            dto.setRecommendedSkills(matcher.group(5).split(",\\s*(?=-)?"));
             topics.add(dto);
         }
 
+        // Обратная совместимость: парсинг старого формата (только описание и навыки)
+        if (topics.isEmpty()) {
+            Pattern legacyPattern = Pattern.compile(
+                    "###\\s*Тема\\s*\\d+\\s*(?::\\s*)?(.*?)\\n" +
+                            "\\*\\*Описание\\*\\*:\\s*(.+?)\\n" +
+                            "\\*\\*Навыки\\*\\*:\\s*(.+?)(?:\\n\\n|\\n?$)",
+                    Pattern.DOTALL
+            );
+            Matcher legacyMatcher = legacyPattern.matcher(rawText);
+
+            while (legacyMatcher.find()) {
+                GeneratedTopicDto dto = new GeneratedTopicDto();
+                dto.setTitle(legacyMatcher.group(1).trim());
+                dto.setDescription(legacyMatcher.group(2).trim());
+                dto.setActuality("Не указана");
+                dto.setProblems("Не указаны");
+                dto.setRecommendedSkills(legacyMatcher.group(3).split(",\\s*(?=-)?"));
+                topics.add(dto);
+            }
+        }
+
+        // Заглушка, если ничего не удалось распарсить
         if (topics.isEmpty()) {
             log.warn("Не удалось распарсить темы из ответа: {}", rawText);
             GeneratedTopicDto fallback = new GeneratedTopicDto();
             fallback.setTitle("Сгенерированная тема");
             fallback.setDescription(rawText);
+            fallback.setActuality("Не указана");
+            fallback.setProblems("Не указаны");
             fallback.setRecommendedSkills(new String[]{"Неизвестно"});
             topics.add(fallback);
         }
