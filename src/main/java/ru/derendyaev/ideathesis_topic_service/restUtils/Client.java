@@ -83,7 +83,7 @@ public class Client {
                     .headers(httpHeaders -> httpHeaders.addAll(messageHeaders))
                     .bodyValue(request)
                     .retrieve()
-                    .bodyToMono(GigaMessageResponse.class)
+                    .bodyToMono(GigaMessageResponse.class).log()
                     .block();
         } catch (WebClientResponseException e) {
             log.error("Ошибка GigaChat: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
