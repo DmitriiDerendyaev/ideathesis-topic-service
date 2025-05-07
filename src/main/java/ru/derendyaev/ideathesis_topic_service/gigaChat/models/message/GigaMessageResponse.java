@@ -1,4 +1,4 @@
-package gigaChat.models.message;
+package ru.derendyaev.ideathesis_topic_service.gigaChat.models.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ public class GigaMessageResponse {
     @JsonProperty("created")
     private long created; // время создания
 
-    @JsonProperty("model")
+    @JsonProperty("ru/derendyaev/ideathesis_topic_service/model")
     private String model; // идентификатор модели
 
     @JsonProperty("object")

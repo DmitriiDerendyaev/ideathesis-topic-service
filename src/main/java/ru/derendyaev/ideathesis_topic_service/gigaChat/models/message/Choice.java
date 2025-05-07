@@ -1,4 +1,4 @@
-package gigaChat.models.message;
+package ru.derendyaev.ideathesis_topic_service.gigaChat.models.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

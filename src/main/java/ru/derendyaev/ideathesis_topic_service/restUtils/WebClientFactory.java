@@ -1,4 +1,4 @@
-package restUtils;
+package ru.derendyaev.ideathesis_topic_service.restUtils;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
