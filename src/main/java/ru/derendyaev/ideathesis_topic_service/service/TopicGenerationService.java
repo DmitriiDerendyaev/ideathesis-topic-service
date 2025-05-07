@@ -1,86 +1,91 @@
 package ru.derendyaev.ideathesis_topic_service.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicRequest;
 import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicResponse;
 import ru.derendyaev.ideathesis_topic_service.dto.GeneratedTopicDto;
 import ru.derendyaev.ideathesis_topic_service.exceptions.GigaChatException;
+import ru.derendyaev.ideathesis_topic_service.gigaChat.PromptConstants;
+import ru.derendyaev.ideathesis_topic_service.gigaChat.models.message.GigaMessageRequest;
 import ru.derendyaev.ideathesis_topic_service.gigaChat.models.message.GigaMessageResponse;
-import ru.derendyaev.ideathesis_topic_service.gigaChat.role.RolePromptAction;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import ru.derendyaev.ideathesis_topic_service.gigaChat.models.message.Message;
 import ru.derendyaev.ideathesis_topic_service.restUtils.Client;
-
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/**
- * Сервис генерирует темы, обращаясь к GigaChat через GigaChatClient.
- */
+import static ru.derendyaev.ideathesis_topic_service.gigaChat.models.GigaChatConstant.*;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TopicGenerationService {
 
     private final Client gigaChatClient;
-    private final RolePromptAction rolePromptAction;
 
-    /**
-     * Основной метод генерации тем.
-     *
-     * @param request объект с компетенциями, областью и уровнем обучения
-     * @return ответ со списком тем
-     */
     public GenerateTopicResponse generateTopics(GenerateTopicRequest request) {
-        // 1) Формируем "system" и "user" промпты
-        String systemPrompt = rolePromptAction.getBachelorRolePrompt(); // По умолчанию
-        if ("MASTER".equalsIgnoreCase(request.getEducationLevel())) {
-            systemPrompt = rolePromptAction.getMasterRolePrompt();
-        }
+        String systemPrompt = PromptConstants.SYSTEM_PROMPT;
+        String userPrompt = "MASTER".equalsIgnoreCase(request.getEducationLevel())
+                ? PromptConstants.getMasterPrompt(request.getCompetencies(), request.getAreaOfStudy())
+                : PromptConstants.getBachelorPrompt(request.getCompetencies(), request.getAreaOfStudy());
 
-        // Можно добавлять контекст: "Ты выступаешь как эксперт..."
-        String finalSystemPrompt = "Ты отвечаешь как эксперт..." + "\n\n" + systemPrompt;
+        GigaMessageRequest gigaRequest = new GigaMessageRequest(
+                GIGA_CHAT_MODEL,
+                false, // stream
+                0,     // updateInterval
+                List.of(
+                        new Message(SYSTEM_ROLE, systemPrompt),
+                        new Message(USER_ROLE, userPrompt)
+                ),
+                1,     // n
+                512,   // max_tokens
+                1.0    // repetition_penalty
+        );
 
-        // User Prompt — это компетенции и область
-        String userPrompt = String.format("Компетенции: %s\nОбласть исследования: %s",
-                request.getCompetencies(), request.getAreaOfStudy());
-
-        // 2) Делаем запрос к GigaChat
         GigaMessageResponse response;
         try {
-            response = gigaChatClient.gigaMessageGenerate(finalSystemPrompt, userPrompt, null);
+            response = gigaChatClient.gigaMessageGenerate(gigaRequest);
         } catch (Exception e) {
             log.error("Ошибка при вызове GigaChat: ", e);
             throw new GigaChatException("Не удалось получить ответ от GigaChat", e);
         }
 
-        // 3) Парсим полученный текст
-        String rawAnswer = response.toString(); // или response.getChoices().get(0).getMessage().getContent()
-        // Простейший способ — парсить текст, разбивать на 3 темы.
-        // Здесь для примера - "заглушка" обработки.
-        List<GeneratedTopicDto> dtos = parseTopicsFromGigaChat(rawAnswer);
+        String rawAnswer = response.getChoices().get(0).getMessage().getContent();
+        List<GeneratedTopicDto> topics = parseTopicsFromGigaChat(rawAnswer);
 
-        // 4) Формируем ответ
         GenerateTopicResponse result = new GenerateTopicResponse();
-        result.setTopics(dtos);
+        result.setTopics(topics);
         return result;
     }
 
-    /**
-     * Условный парсинг ответа. В реальном проекте нужен более надёжный разбор:
-     * - Регулярные выражения
-     * - JSON-формат
-     * - markdown
-     */
     private List<GeneratedTopicDto> parseTopicsFromGigaChat(String rawText) {
-        List<GeneratedTopicDto> result = new ArrayList<>();
-        // Заглушка: создаём одну тему из всего текста
-        GeneratedTopicDto dto = new GeneratedTopicDto();
-        dto.setTitle("Сгенерированная тема #1");
-        dto.setDescription(rawText);
-        dto.setRecommendedSkills(new String[] {"Java", "Spring", "React"});
-        result.add(dto);
-        return result;
+        List<GeneratedTopicDto> topics = new ArrayList<>();
+        // Предполагаем, что ответ в формате:
+        // ### Тема 1\n**Описание**: текст\n**Навыки**: навык1, навык2
+        Pattern pattern = Pattern.compile("### (.+?)\\n\\*\\*Описание\\*\\*: (.+?)\\n\\*\\*Навыки\\*\\*: (.+?)(?:\\n|$)", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(rawText);
+
+        while (matcher.find()) {
+            GeneratedTopicDto dto = new GeneratedTopicDto();
+            dto.setTitle(matcher.group(1).trim());
+            dto.setDescription(matcher.group(2).trim());
+            dto.setRecommendedSkills(matcher.group(3).split(",\\s*"));
+            topics.add(dto);
+        }
+
+        if (topics.isEmpty()) {
+            log.warn("Не удалось распарсить темы из ответа: {}", rawText);
+            GeneratedTopicDto fallback = new GeneratedTopicDto();
+            fallback.setTitle("Сгенерированная тема");
+            fallback.setDescription(rawText);
+            fallback.setRecommendedSkills(new String[]{"Неизвестно"});
+            topics.add(fallback);
+        }
+
+        return topics;
     }
 }

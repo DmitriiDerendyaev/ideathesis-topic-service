@@ -6,15 +6,12 @@ import lombok.Data;
 @Data
 public class GenerateTopicRequest {
 
-    @NotBlank
+    @NotBlank(message = "Компетенции не могут быть пустыми")
     private String competencies;
 
-    @NotBlank
+    @NotBlank(message = "Область обучения не может быть пустой")
     private String areaOfStudy;
 
-    /**
-     * Уровень обучения: "BACHELOR", "MASTER", и т.д.
-     */
-    @NotBlank
-    private String educationLevel;
+    @NotBlank(message = "Уровень обучения не может быть пустым")
+    private String educationLevel; // "BACHELOR" или "MASTER"
 }

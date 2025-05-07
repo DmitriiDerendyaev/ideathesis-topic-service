@@ -1,26 +1,20 @@
 package ru.derendyaev.ideathesis_topic_service.restUtils;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import ru.derendyaev.ideathesis_topic_service.gigaChat.models.auth.GigaToken;
 import ru.derendyaev.ideathesis_topic_service.gigaChat.models.message.GigaMessageRequest;
 import ru.derendyaev.ideathesis_topic_service.gigaChat.models.message.GigaMessageResponse;
-import ru.derendyaev.ideathesis_topic_service.gigaChat.models.message.Message;
 
-import static ru.derendyaev.ideathesis_topic_service.gigaChat.models.GigaChatConstant.*;
-
+import jakarta.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -28,6 +22,7 @@ public class Client {
 
     private WebClient webClientToken;
     private WebClient webClientChat;
+    private volatile GigaToken cachedToken;
 
     @Value("${app.values.api.giga-chat.chat-settings.scope}")
     private String scope;
@@ -47,54 +42,56 @@ public class Client {
         this.webClientToken = WebClientFactory.createWebClient(baseUrlAuth);
     }
 
-    public GigaToken getToken() {
-        log.info("Создан новый токен!");
-        HttpHeaders tokenHeaders = new HttpHeaders();
-        tokenHeaders.put("RqUID", Collections.singletonList(getUUID()));
-        tokenHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        tokenHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        tokenHeaders.set("Authorization", "Basic " + authKey);
+    public synchronized GigaToken getToken() {
+        if (cachedToken == null || isTokenExpired(cachedToken)) {
+            log.info("Получение нового токена");
+            HttpHeaders tokenHeaders = new HttpHeaders();
+            tokenHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            tokenHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            tokenHeaders.set("Authorization", "Basic " + authKey);
+            tokenHeaders.put("RqUID", Collections.singletonList(getUUID()));
 
-        return this.webClientToken
-                .post()
-                .uri("/api/v2/oauth")
-                .headers(httpHeaders -> httpHeaders.addAll(tokenHeaders))
-                .body(BodyInserters.fromFormData("scope", scope))
-                .retrieve()
-                .bodyToMono(GigaToken.class)
-                .block();
+            cachedToken = webClientToken
+                    .post()
+                    .uri("/api/v2/oauth")
+                    .headers(httpHeaders -> httpHeaders.addAll(tokenHeaders))
+                    .body(BodyInserters.fromFormData("scope", scope))
+                    .retrieve()
+                    .bodyToMono(GigaToken.class)
+                    .block();
+        }
+        return cachedToken;
     }
 
-    public GigaMessageResponse gigaMessageGenerate(String context, String userRequest, @Nullable String token) {
-//        checkToken(token);
+    private boolean isTokenExpired(GigaToken token) {
+        return token.getExpiresAt() <= System.currentTimeMillis() + 60_000; // 1 минута запаса
+    }
+
+    public GigaMessageResponse gigaMessageGenerate(GigaMessageRequest request) {
         HttpHeaders messageHeaders = new HttpHeaders();
         messageHeaders.setContentType(MediaType.APPLICATION_JSON);
+        messageHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         messageHeaders.put("X-Request-ID", Collections.singletonList(getUUID()));
-        messageHeaders.put("X-Session-ID", Collections.singletonList(getUUID()));
-        messageHeaders.put("X-Client-ID", Collections.singletonList(getUUID()));
         messageHeaders.setBearerAuth(getToken().getAccessToken());
 
-        log.info("Создан запрос в GigaChat c контекстом: {} и тематикой: {}", context, userRequest);
+        log.info("Запрос к GigaChat: {}", request);
 
-        return this.webClientChat
-                .post()
-                .uri("/api/v1/chat/completions")
-                .headers(httpHeaders -> httpHeaders.addAll(messageHeaders))
-                .bodyValue(new GigaMessageRequest(
-                        GIGA_CHAT_MODEL,
-                        false,
-                        0,
-                        List.of(new Message(SYSTEM_ROLE, context),
-                                new Message(USER_ROLE, userRequest))
-                        ))
-                .retrieve()
-                .bodyToMono(GigaMessageResponse.class).block();
+        try {
+            return webClientChat
+                    .post()
+                    .uri("/api/v1/chat/completions")
+                    .headers(httpHeaders -> httpHeaders.addAll(messageHeaders))
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(GigaMessageResponse.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            log.error("Ошибка GigaChat: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
+        }
     }
 
     private String getUUID() {
         return UUID.randomUUID().toString();
     }
-
-
-
 }
