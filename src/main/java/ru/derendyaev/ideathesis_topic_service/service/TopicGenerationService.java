@@ -49,7 +49,8 @@ public class TopicGenerationService {
         GigaMessageResponse response;
         try {
             response = gigaChatClient.gigaMessageGenerate(gigaRequest);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Ошибка при вызове GigaChat: ", e);
             throw new GigaChatException("Не удалось получить ответ от GigaChat", e);
         }
@@ -64,9 +65,9 @@ public class TopicGenerationService {
 
     private List<GeneratedTopicDto> parseTopicsFromGigaChat(String rawText) {
         List<GeneratedTopicDto> topics = new ArrayList<>();
-        // Шаблон для парсинга ответа с учетом нового формата
+        // Шаблон для парсинга ответа
         Pattern pattern = Pattern.compile(
-                "###\\s*Тема\\s*\\d+\\s*(?::\\s*)?(.*?)\\n" +
+                "###\\s*Тема\\s*\\d+\\s*(?::\\s*(.*?))?\\n" +
                         "\\*\\*Описание\\*\\*:\\s*(.+?)\\n" +
                         "\\*\\*Актуальность\\*\\*:\\s*(.+?)\\n" +
                         "\\*\\*Проблемы\\*\\*:\\s*(.+?)\\n" +
@@ -78,7 +79,17 @@ public class TopicGenerationService {
         while (matcher.find()) {
             try {
                 GeneratedTopicDto dto = new GeneratedTopicDto();
-                dtoZeichnung(dto, matcher);
+                // Если заголовок после двоеточия отсутствует, используем описание как заголовок
+                String title = matcher.group(1) != null && !matcher.group(1).trim().isEmpty()
+                        ? matcher.group(1).trim()
+                        : matcher.group(2).trim();
+                dto.setTitle(title);
+                dto.setDescription(matcher.group(2).trim());
+                dto.setActuality(matcher.group(3).trim());
+                dto.setProblems(matcher.group(4).trim());
+                // Очищаем стек технологий от лишних символов (например, точки в конце)
+                String techStack = matcher.group(5).trim().replaceAll("[\\.\\s]+$", "");
+                dto.setRecommendedSkills(techStack.isEmpty() ? new String[0] : techStack.split(",\\s*"));
                 topics.add(dto);
             } catch (Exception e) {
                 log.warn("Ошибка при парсинге темы: {}", matcher.group(0), e);
@@ -98,15 +109,5 @@ public class TopicGenerationService {
         }
 
         return topics;
-    }
-
-    private void dtoZeichnung(GeneratedTopicDto dto, Matcher matcher) {
-        dto.setTitle(matcher.group(1).trim());
-        dto.setDescription(matcher.group(2).trim());
-        dto.setActuality(matcher.group(3).trim());
-        dto.setProblems(matcher.group(4).trim());
-        // Разделяем стек технологий по запятым, убирая лишние пробелы
-        String techStack = matcher.group(5).trim();
-        dto.setRecommendedSkills(techStack.isEmpty() ? new String[0] : techStack.split(",\\s*"));
     }
 }
