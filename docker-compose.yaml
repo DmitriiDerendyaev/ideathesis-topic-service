@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: topic-service_db
+    environment:
+      POSTGRES_USER: topic
+      POSTGRES_PASSWORD: topic
+      POSTGRES_DB: topic
+    ports:
+      - "5222:5432"
+    volumes:
+      - topic_postgres_data:/var/lib/postgresql/data  # Исправлен путь (у вас было /vars)
+    restart: always
+
+volumes:
+  topic_postgres_data:  # Уникальное имя
