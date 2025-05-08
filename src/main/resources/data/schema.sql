@@ -9,16 +9,16 @@ DROP TABLE IF EXISTS user_competencies;
 DROP TABLE IF EXISTS study_areas;
 DROP TABLE IF EXISTS competencies;
 
--- Создание таблиц
+-- Создание таблиц с увеличенными ограничениями
 CREATE TABLE competencies (
     competency_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    competency_name VARCHAR(255) NOT NULL UNIQUE,
+    competency_name VARCHAR(2048) NOT NULL UNIQUE,
     description TEXT
 );
 
 CREATE TABLE study_areas (
     area_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    area_name VARCHAR(255) NOT NULL UNIQUE,
+    area_name VARCHAR(2048) NOT NULL UNIQUE,
     description TEXT
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE user_competencies (
 );
 
 CREATE TABLE user_study_areas (
-    user_study_AREA_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_study_area_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     student_guid UUID NOT NULL,
     area_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,7 +62,7 @@ CREATE TABLE request_competencies (
 CREATE TABLE generated_topics (
     topic_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     request_id BIGINT NOT NULL,
-    title VARCHAR(255) NOT NULL,
+    title VARCHAR(2048) NOT NULL,
     description TEXT NOT NULL,
     actuality TEXT NOT NULL,
     problems TEXT NOT NULL,

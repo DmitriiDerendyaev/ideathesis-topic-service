@@ -15,12 +15,12 @@ public class StudyArea {
     @Column(name = "area_id")
     private Long id;
 
-    @Column(name = "area_name", nullable = false, unique = true)
+    @Column(name = "area_name", nullable = false, unique = true, length = 2048)
     private String areaName;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

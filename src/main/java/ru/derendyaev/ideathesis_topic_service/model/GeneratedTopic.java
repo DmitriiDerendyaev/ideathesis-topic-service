@@ -19,16 +19,16 @@ public class GeneratedTopic {
     @JoinColumn(name = "request_id", nullable = false)
     private UserRequest request;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, length = 2048)
     private String title;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "actuality", nullable = false)
+    @Column(name = "actuality", nullable = false, columnDefinition = "TEXT")
     private String actuality;
 
-    @Column(name = "problems", nullable = false)
+    @Column(name = "problems", nullable = false, columnDefinition = "TEXT")
     private String problems;
 
     @Column(name = "created_at", nullable = false, updatable = false)
