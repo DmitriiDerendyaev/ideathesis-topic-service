@@ -51,9 +51,10 @@ public class TopicController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<GeneratedTopic>> getLastTenTopics(
+    public ResponseEntity<GenerateTopicResponse> getLastTenTopics(
             @RequestHeader("X-Student-Guid") String studentGuid) {
         UUID guid = UUID.fromString(studentGuid);
-        return ResponseEntity.ok(topicManagementService.getLastTenTopics(guid));
+        GenerateTopicResponse response = topicManagementService.getLastTenTopics(guid);
+        return ResponseEntity.ok(response);
     }
 }
