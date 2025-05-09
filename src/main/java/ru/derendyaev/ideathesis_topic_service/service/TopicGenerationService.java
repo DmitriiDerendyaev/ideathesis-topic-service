@@ -114,6 +114,10 @@ public class TopicGenerationService {
             topic.setCreatedAt(LocalDateTime.now());
             topic = generatedTopicRepository.save(topic);
 
+            // Устанавливаем ID в DTO после сохранения
+            //TODO: Посмотреть что ID приходит
+            topicDto.setId(topic.getId());
+
             // Сохранение рекомендованных навыков
             for (String skillName : topicDto.getRecommendedSkills()) {
                 Competency skill = competencyRepository.findByCompetencyName(skillName)
