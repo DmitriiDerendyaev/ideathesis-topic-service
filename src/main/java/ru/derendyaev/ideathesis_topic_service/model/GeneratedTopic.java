@@ -33,4 +33,9 @@ public class GeneratedTopic {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TopicStatus status = TopicStatus.DRAFT; // По умолчанию DRAFT
 }
+

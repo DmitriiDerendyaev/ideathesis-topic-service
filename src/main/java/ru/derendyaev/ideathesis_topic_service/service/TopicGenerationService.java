@@ -112,6 +112,7 @@ public class TopicGenerationService {
             topic.setActuality(topicDto.getActuality());
             topic.setProblems(topicDto.getProblems());
             topic.setCreatedAt(LocalDateTime.now());
+            topic.setStatus(TopicStatus.DRAFT); // Устанавливаем статус DRAFT
             topic = generatedTopicRepository.save(topic);
 
             // Устанавливаем ID в DTO после сохранения

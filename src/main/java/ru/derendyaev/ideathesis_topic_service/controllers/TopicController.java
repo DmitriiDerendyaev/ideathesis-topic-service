@@ -7,9 +7,13 @@ import org.springframework.web.bind.annotation.*;
 import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicRequest;
 import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicResponse;
 import ru.derendyaev.ideathesis_topic_service.dto.SelectTopicRequest;
+import ru.derendyaev.ideathesis_topic_service.dto.TopicStatusUpdateRequest;
+import ru.derendyaev.ideathesis_topic_service.model.GeneratedTopic;
 import ru.derendyaev.ideathesis_topic_service.service.TopicGenerationService;
+import ru.derendyaev.ideathesis_topic_service.service.TopicManagementService;
 import ru.derendyaev.ideathesis_topic_service.service.TopicSelectionService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,7 +22,7 @@ import java.util.UUID;
 public class TopicController {
 
     private final TopicGenerationService topicGenerationService;
-    private final TopicSelectionService topicSelectionService;
+    private final TopicManagementService topicManagementService;
 
     @PostMapping("/generate")
     public ResponseEntity<GenerateTopicResponse> generateTopics(
@@ -34,7 +38,22 @@ public class TopicController {
             @RequestHeader("X-Student-Guid") String studentGuid,
             @RequestBody @Valid SelectTopicRequest request) {
         UUID guid = UUID.fromString(studentGuid);
-        topicSelectionService.selectTopic(guid, request.getTopicId());
+        topicManagementService.selectTopic(guid, request.getTopicId());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/status")
+    public ResponseEntity<Void> updateTopicStatus(
+            @RequestHeader("X-Student-Guid") String studentGuid,
+            @RequestBody @Valid TopicStatusUpdateRequest request) {
+        topicManagementService.updateTopicStatus(request.getTopicId(), request);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<GeneratedTopic>> getLastTenTopics(
+            @RequestHeader("X-Student-Guid") String studentGuid) {
+        UUID guid = UUID.fromString(studentGuid);
+        return ResponseEntity.ok(topicManagementService.getLastTenTopics(guid));
     }
 }
