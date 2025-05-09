@@ -38,7 +38,7 @@ public class TopicController {
             @RequestHeader("X-Student-Guid") String studentGuid,
             @RequestBody @Valid SelectTopicRequest request) {
         UUID guid = UUID.fromString(studentGuid);
-        topicManagementService.selectTopic(guid, request.getTopicId());
+        topicManagementService.selectTopic(guid, request.getTopicId(), UUID.fromString(request.getSupervisorGuid()));
         return ResponseEntity.ok().build();
     }
 

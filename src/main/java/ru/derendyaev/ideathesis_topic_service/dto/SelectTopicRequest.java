@@ -8,4 +8,5 @@ import lombok.Data;
 public class SelectTopicRequest {
     @NotNull(message = "ID темы не может быть пустым")
     private Long topicId;
+    private String supervisorGuid; // Добавляем GUID преподавателя
 }

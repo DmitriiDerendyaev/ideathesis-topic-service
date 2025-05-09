@@ -23,6 +23,9 @@ public class TopicSelection {
     @JoinColumn(name = "topic_id", nullable = false)
     private GeneratedTopic topic;
 
+    @Column(name = "supervisor_guid", nullable = false)
+    private UUID supervisorGuid; // Добавляем GUID преподавателя
+
     @Column(name = "selected_at", nullable = false, updatable = false)
     private LocalDateTime selectedAt = LocalDateTime.now();
 
