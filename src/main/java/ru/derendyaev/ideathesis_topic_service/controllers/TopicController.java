@@ -4,14 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicRequest;
-import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicResponse;
-import ru.derendyaev.ideathesis_topic_service.dto.SelectTopicRequest;
-import ru.derendyaev.ideathesis_topic_service.dto.TopicStatusUpdateRequest;
-import ru.derendyaev.ideathesis_topic_service.model.GeneratedTopic;
+import ru.derendyaev.ideathesis_topic_service.dto.*;
 import ru.derendyaev.ideathesis_topic_service.service.TopicGenerationService;
 import ru.derendyaev.ideathesis_topic_service.service.TopicManagementService;
-import ru.derendyaev.ideathesis_topic_service.service.TopicSelectionService;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,5 +51,19 @@ public class TopicController {
         UUID guid = UUID.fromString(studentGuid);
         GenerateTopicResponse response = topicManagementService.getLastTenTopics(guid);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/students/{studentGuid}/topics/active")
+    public ResponseEntity<List<StudentTopicSelectionDto>> getActiveTopicsForStudent(@PathVariable String studentGuid) {
+        UUID guid = UUID.fromString(studentGuid);
+        List<StudentTopicSelectionDto> activeTopics = topicManagementService.getActiveTopicsForStudent(guid);
+        return ResponseEntity.ok(activeTopics);
+    }
+
+    @PostMapping("/topics/{topicId}/withdraw")
+    public ResponseEntity<Void> withdrawTopic(@PathVariable Long topicId, @RequestHeader("X-Student-Guid") String studentGuid) {
+        UUID guid = UUID.fromString(studentGuid);
+        topicManagementService.withdrawTopic(topicId, guid);
+        return ResponseEntity.ok().build();
     }
 }

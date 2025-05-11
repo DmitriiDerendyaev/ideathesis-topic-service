@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.derendyaev.ideathesis_topic_service.dto.GenerateTopicResponse;
 import ru.derendyaev.ideathesis_topic_service.dto.GeneratedTopicDto;
+import ru.derendyaev.ideathesis_topic_service.dto.StudentTopicSelectionDto;
 import ru.derendyaev.ideathesis_topic_service.dto.TopicStatusUpdateRequest;
 import ru.derendyaev.ideathesis_topic_service.mapper.TopicMapper;
 import ru.derendyaev.ideathesis_topic_service.model.GeneratedTopic;
@@ -75,5 +76,33 @@ public class TopicManagementService {
         GenerateTopicResponse response = new GenerateTopicResponse();
         response.setTopics(topicMapper.toGeneratedTopicDtoList(topics));
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public List<StudentTopicSelectionDto> getActiveTopicsForStudent(UUID studentGuid) {
+        List<TopicSelection> selections = topicSelectionRepository.findByStudentGuid(studentGuid);
+        return selections.stream()
+                .filter(selection -> !selection.getTopic().getStatus().equals(TopicStatus.REJECTED))
+                .map(selection -> {
+                    StudentTopicSelectionDto dto = new StudentTopicSelectionDto();
+                    dto.setTopic(topicMapper.toGeneratedTopicDto(selection.getTopic()));
+                    dto.getTopic().setStatus(selection.getTopic().getStatus());
+                    dto.setSupervisorGuid(selection.getSupervisorGuid());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void withdrawTopic(Long topicId, UUID studentGuid) {
+        TopicSelection selection = topicSelectionRepository.findByStudentGuidAndTopicId(studentGuid, topicId)
+                .orElseThrow(() -> new IllegalArgumentException("TopicSelection not found"));
+        GeneratedTopic topic = selection.getTopic();
+        if (topic.getStatus() == TopicStatus.PENDING) {
+            topic.setStatus(TopicStatus.REJECTED);
+            generatedTopicRepository.save(topic);
+        } else {
+            throw new IllegalStateException("Cannot withdraw topic with status: " + topic.getStatus());
+        }
     }
 }
