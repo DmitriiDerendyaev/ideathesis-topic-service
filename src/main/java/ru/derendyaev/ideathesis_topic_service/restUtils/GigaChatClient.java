@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class Client {
+public class GigaChatClient {
 
     private WebClient webClientToken;
     private WebClient webClientChat;
