@@ -6,7 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.derendyaev.ideathesis_topic_service.dto.*;
 import ru.derendyaev.ideathesis_topic_service.dto.changelog.TopicChangeLogDto;
+import ru.derendyaev.ideathesis_topic_service.dto.comment.AddCommentRequest;
+import ru.derendyaev.ideathesis_topic_service.dto.comment.TopicCommentDto;
 import ru.derendyaev.ideathesis_topic_service.service.TopicChangeLogService;
+import ru.derendyaev.ideathesis_topic_service.service.TopicCommentService;
 import ru.derendyaev.ideathesis_topic_service.service.TopicGenerationService;
 import ru.derendyaev.ideathesis_topic_service.service.TopicManagementService;
 
@@ -21,6 +24,7 @@ public class TopicController {
     private final TopicGenerationService topicGenerationService;
     private final TopicManagementService topicManagementService;
     private final TopicChangeLogService topicChangeLogService;
+    private final TopicCommentService topicCommentService;
 
     @PostMapping("/generate")
     public ResponseEntity<GenerateTopicResponse> generateTopics(
@@ -76,5 +80,33 @@ public class TopicController {
         UUID guid = UUID.fromString(studentGuid);
         topicManagementService.withdrawTopic(topicId, guid);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{topicId}/comments")
+    public ResponseEntity<TopicCommentDto> addComment(
+            @PathVariable Long topicId,
+            @RequestHeader(value = "X-Student-Guid", required = false) String studentGuid,
+            @RequestHeader(value = "X-Teacher-Guid", required = false) String teacherGuid,
+            @RequestBody @Valid AddCommentRequest request) {
+        UUID authorGuid;
+        String authorType;
+        if (studentGuid != null) {
+            authorGuid = UUID.fromString(studentGuid);
+            authorType = "STUDENT";
+        } else if (teacherGuid != null) {
+            authorGuid = UUID.fromString(teacherGuid);
+            authorType = "TEACHER";
+        } else {
+            throw new IllegalArgumentException("Должен быть указан либо X-Student-Guid, либо X-Teacher-Guid");
+        }
+
+        TopicCommentDto commentDto = topicCommentService.addComment(topicId, authorType, authorGuid, request.getCommentText(), request.getParentCommentId());
+        return ResponseEntity.ok(commentDto);
+    }
+
+    @GetMapping("/{topicId}/comments")
+    public ResponseEntity<List<TopicCommentDto>> getCommentsForTopic(@PathVariable Long topicId) {
+        List<TopicCommentDto> comments = topicCommentService.getCommentsForTopic(topicId);
+        return ResponseEntity.ok(comments);
     }
 }
