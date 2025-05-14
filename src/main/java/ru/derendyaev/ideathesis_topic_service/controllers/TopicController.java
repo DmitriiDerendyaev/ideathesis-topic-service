@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.derendyaev.ideathesis_topic_service.dto.*;
+import ru.derendyaev.ideathesis_topic_service.dto.changelog.TopicChangeLogDto;
+import ru.derendyaev.ideathesis_topic_service.service.TopicChangeLogService;
 import ru.derendyaev.ideathesis_topic_service.service.TopicGenerationService;
 import ru.derendyaev.ideathesis_topic_service.service.TopicManagementService;
 
@@ -18,6 +20,7 @@ public class TopicController {
 
     private final TopicGenerationService topicGenerationService;
     private final TopicManagementService topicManagementService;
+    private final TopicChangeLogService topicChangeLogService;
 
     @PostMapping("/generate")
     public ResponseEntity<GenerateTopicResponse> generateTopics(
@@ -41,7 +44,8 @@ public class TopicController {
     public ResponseEntity<Void> updateTopicStatus(
             @RequestHeader("X-Student-Guid") String studentGuid,
             @RequestBody @Valid TopicStatusUpdateRequest request) {
-        topicManagementService.updateTopicStatus(request.getTopicId(), request);
+        UUID guid = UUID.fromString(studentGuid);
+        topicManagementService.updateTopicStatus(request.getTopicId(), request, guid    );
         return ResponseEntity.ok().build();
     }
 
@@ -51,6 +55,13 @@ public class TopicController {
         UUID guid = UUID.fromString(studentGuid);
         GenerateTopicResponse response = topicManagementService.getLastTenTopics(guid);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{topicId}/history")
+    public ResponseEntity<List<TopicChangeLogDto>> getTopicHistory(
+            @PathVariable Long topicId) {
+        List<TopicChangeLogDto> history = topicChangeLogService.getTopicHistory(topicId);
+        return ResponseEntity.ok(history);
     }
 
     @GetMapping("/students/{studentGuid}/topics/active")

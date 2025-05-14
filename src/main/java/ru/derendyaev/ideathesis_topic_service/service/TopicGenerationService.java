@@ -38,6 +38,7 @@ public class TopicGenerationService {
     private final RequestCompetencyRepository requestCompetencyRepository;
     private final GeneratedTopicRepository generatedTopicRepository;
     private final TopicSkillRepository topicSkillRepository;
+    private final TopicChangeLogService topicChangeLogService;
 
     @Transactional
     public GenerateTopicResponse generateAndSaveTopics(UUID studentGuid, GenerateTopicRequest request) {
@@ -112,11 +113,13 @@ public class TopicGenerationService {
             topic.setActuality(topicDto.getActuality());
             topic.setProblems(topicDto.getProblems());
             topic.setCreatedAt(LocalDateTime.now());
-            topic.setStatus(TopicStatus.DRAFT); // Устанавливаем статус DRAFT
+            topic.setStatus(TopicStatus.DRAFT);
             topic = generatedTopicRepository.save(topic);
 
+            // Сохранение слепка
+            topicChangeLogService.saveTopicSnapshot(topic, studentGuid);
+
             // Устанавливаем ID в DTO после сохранения
-            //TODO: Посмотреть что ID приходит
             topicDto.setId(topic.getId());
 
             // Сохранение рекомендованных навыков

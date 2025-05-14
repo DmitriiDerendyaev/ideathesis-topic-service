@@ -29,6 +29,7 @@ public class TopicManagementService {
     private final GeneratedTopicRepository generatedTopicRepository;
     private final TopicSelectionRepository topicSelectionRepository;
     private final TopicMapper topicMapper;
+    private final TopicChangeLogService topicChangeLogService;
 
     @Transactional
     public void selectTopic(UUID studentGuid, Long topicId, UUID supervisorGuid) {
@@ -58,14 +59,16 @@ public class TopicManagementService {
         // Обновление статуса темы
         topic.setStatus(TopicStatus.PENDING);
         generatedTopicRepository.save(topic);
+        topicChangeLogService.saveTopicSnapshot(topic, studentGuid);
     }
 
     @Transactional
-    public void updateTopicStatus(Long topicId, TopicStatusUpdateRequest request) {
+    public void updateTopicStatus(Long topicId, TopicStatusUpdateRequest request, UUID studentGuid) {
         GeneratedTopic topic = generatedTopicRepository.findById(topicId)
                 .orElseThrow(() -> new IllegalArgumentException("Тема с ID " + topicId + " не найдена"));
         topic.setStatus(request.getStatus());
         generatedTopicRepository.save(topic);
+        topicChangeLogService.saveTopicSnapshot(topic, studentGuid);
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +104,7 @@ public class TopicManagementService {
         if (topic.getStatus() == TopicStatus.PENDING) {
             topic.setStatus(TopicStatus.REJECTED);
             generatedTopicRepository.save(topic);
+            topicChangeLogService.saveTopicSnapshot(topic, studentGuid);
         } else {
             throw new IllegalStateException("Cannot withdraw topic with status: " + topic.getStatus());
         }
