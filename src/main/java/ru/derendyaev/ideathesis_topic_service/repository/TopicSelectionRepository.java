@@ -18,4 +18,6 @@ public interface TopicSelectionRepository extends JpaRepository<TopicSelection, 
     List<TopicSelection> findByTopicIdAndStudentGuidNot(Long topicId, UUID studentGuid);
     List<TopicSelection> findByStudentGuid(UUID studentGuid);
     Optional<TopicSelection> findByTopicId(Long topicId);
+    // Новый метод для поиска по supervisorGuid и статусам топика
+    List<TopicSelection> findBySupervisorGuidAndTopicStatusIn(UUID supervisorGuid, List<TopicStatus> statuses);
 }

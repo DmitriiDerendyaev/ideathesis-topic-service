@@ -9,4 +9,7 @@ public interface TopicSkillRepository extends JpaRepository<TopicSkill, Long> {
     List<TopicSkill> findByTopicId(Long topicId);
 
     List<TopicSkill> findByTopicIdIn(List<Long> topicIds);
+
+    void deleteByTopicId(Long topicId);
+
 }
