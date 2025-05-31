@@ -188,6 +188,7 @@ public class TopicManagementService {
                     dto.setTopic(topicMapper.toGeneratedTopicDtoWithStatus(selection.getTopic()));
                     dto.setStudentGuid(selection.getStudentGuid());
                     dto.setSupervisorGuid(selection.getSupervisorGuid());
+                    dto.setCreatedAt(selection.getSelectedAt());
                     return dto;
                 })
                 .collect(Collectors.toList());

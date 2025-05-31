@@ -26,6 +26,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/topics")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class TopicController {
 
     private final TopicGenerationService topicGenerationService;

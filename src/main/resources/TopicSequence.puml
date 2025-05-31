@@ -1,0 +1,56 @@
+@startuml
+actor Student
+participant "Client App" as Client
+participant "API Gateway" as Gateway
+participant "Topic Service" as TopicService
+participant "GigaChat Service" as GigaChat
+participant "Auth Service" as AuthService
+participant "Bot Service" as BotService
+participant "Database" as DB
+
+== Generate Topics ==
+Student -> Client: Initiates topic generation
+Client -> Gateway: POST /api/topics/generate\n(X-Student-Guid, GenerateTopicRequest)
+Gateway -> AuthService: Validate X-Student-Guid
+AuthService --> Gateway: Validated studentGuid
+Gateway -> TopicService: Forward POST /api/topics/generate
+TopicService -> DB: Save UserRequest
+DB --> TopicService: UserRequest saved
+TopicService -> GigaChat: POST /generate\n(GigaMessageRequest)
+GigaChat --> TopicService: GigaMessageResponse
+TopicService -> TopicService: Parse response (TopicParser)
+TopicService -> DB: Save GeneratedTopic(s)
+DB --> TopicService: GeneratedTopic(s) saved
+TopicService -> DB: Save TopicChangeLog
+DB --> TopicService: TopicChangeLog saved
+TopicService -> BotService: Send message\n(New topics generated for studentGuid)
+BotService --> TopicService: Message sent
+TopicService --> Gateway: GenerateTopic инструкция
+Gateway --> Client: ResponseEntity<GenerateTopicResponse>
+Client --> Student: Display generated topics
+
+== Select Topic ==
+Student -> Client: Selects a topic
+Client -> Gateway: POST /api/topics/select\n(X-Student-Guid, SelectTopicRequest)
+Gateway -> AuthService: Validate X-Student-Guid
+AuthService --> Gateway: Validated studentGuid
+Gateway -> TopicService: Forward POST /api/topics/select
+TopicService -> DB: Find GeneratedTopic by topicId
+DB --> TopicService: GeneratedTopic
+TopicService -> DB: Check existing TopicSelection
+DB --> TopicService: List<TopicSelection>
+TopicService -> DB: Check active topics for studentGuid
+DB --> TopicService: List<GeneratedTopic>
+TopicService -> DB: Save TopicSelection
+DB --> TopicService: TopicSelection saved
+TopicService -> DB: Update GeneratedTopic status to PENDING
+DB --> TopicService: GeneratedTopic updated
+TopicService -> DB: Save TopicChangeLog
+DB --> TopicService: TopicChangeLog saved
+TopicService -> BotService: Send message\n(Topic selected: topicId, supervisorGuid)
+BotService --> TopicService: Message sent
+TopicService --> Gateway: Void
+Gateway --> Client: ResponseEntity<Void>
+Client --> Student: Confirm topic selection
+
+@enduml
