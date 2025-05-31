@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 @Component
 public class TopicMapper {
 
@@ -19,10 +20,11 @@ public class TopicMapper {
         this.topicSkillRepository = topicSkillRepository;
     }
 
+    // Оригинальный метод, остаётся без изменений
     public GeneratedTopicDto toGeneratedTopicDto(GeneratedTopic topic) {
         List<TopicSkill> skills = topicSkillRepository.findByTopicId(topic.getId());
         String[] recommendedSkills = skills.stream()
-                .filter(skill -> skill.getCompetency() != null) // Проверка на null
+                .filter(skill -> skill.getCompetency() != null)
                 .map(topicSkill -> topicSkill.getCompetency().getCompetencyName())
                 .toArray(String[]::new);
 
@@ -36,9 +38,28 @@ public class TopicMapper {
         );
     }
 
+    // Новый метод с поддержкой статуса
+    public GeneratedTopicDto toGeneratedTopicDtoWithStatus(GeneratedTopic topic) {
+        List<TopicSkill> skills = topicSkillRepository.findByTopicId(topic.getId());
+        String[] recommendedSkills = skills.stream()
+                .filter(skill -> skill.getCompetency() != null)
+                .map(topicSkill -> topicSkill.getCompetency().getCompetencyName())
+                .toArray(String[]::new);
+
+        return new GeneratedTopicDto(
+                topic.getId(),
+                topic.getTitle(),
+                topic.getDescription(),
+                topic.getActuality(),
+                topic.getProblems(),
+                recommendedSkills,
+                topic.getStatus()
+        );
+    }
+
     public List<GeneratedTopicDto> toGeneratedTopicDtoList(List<GeneratedTopic> topics) {
         return topics.stream()
-                .map(this::toGeneratedTopicDto)
+                .map(this::toGeneratedTopicDtoWithStatus) // Используем новую версию для включения статуса
                 .collect(Collectors.toList());
     }
 }

@@ -1,3 +1,5 @@
+server:
+  port: 8084
 app:
   values:
     api:
@@ -7,15 +9,13 @@ app:
           chat: "https://gigachat.devices.sberbank.ru"
         chat-settings:
           scope: "GIGACHAT_API_PERS"
-        auth-key: "${APP_GIGA_CHAT_AUTH_KEY}"
-    bot:
-      token: "${APP_BOT_TOKEN}"
+        auth-key: "OGYwZTY3YTctMjllNi00NGM5LTg3ZGYtZmFkZTljODE5YjYwOjE1MzFhZGFjLTRkYzUtNGYwYS05ZDI1LTZiOWUwMzlkYzYzNw=="
 
 spring:
   datasource:
-    url: jdbc:postgresql://212.192.215.217:5432/ideathesis
-    username: "${DB_USERNAME}"
-    password: "${DB_PASSWORD}"
+    url: jdbc:postgresql://91.146.28.240:5222/topic
+    username: topic
+    password: topic
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10  # ???????????: ????????? ???? ??????????
@@ -25,9 +25,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-#  sql:
-#    init:
-#      mode: always
-#      schema-locations: classpath:schema.sql
+  #  sql:
+  #    init:
+  #      mode: always
+  #      schema-locations: classpath:schema.sql
   application:
     name: ideathesis-topic-service

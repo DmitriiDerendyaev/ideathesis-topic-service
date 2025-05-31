@@ -24,4 +24,7 @@ public interface GeneratedTopicRepository extends JpaRepository<GeneratedTopic, 
             @Param("studentGuid") UUID studentGuid,
             Pageable pageable
     );
+
+    Page<GeneratedTopic> findByRequestStudentGuid(UUID studentGuid, Pageable pageable);
+
 }

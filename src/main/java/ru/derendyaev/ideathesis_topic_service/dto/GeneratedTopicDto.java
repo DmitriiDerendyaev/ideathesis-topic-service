@@ -1,6 +1,7 @@
 package ru.derendyaev.ideathesis_topic_service.dto;
 
 import lombok.Data;
+import ru.derendyaev.ideathesis_topic_service.model.TopicStatus;
 
 @Data
 public class GeneratedTopicDto {
@@ -10,6 +11,7 @@ public class GeneratedTopicDto {
     private String actuality;
     private String problems;
     private String[] recommendedSkills;
+    private TopicStatus status;
 
     public GeneratedTopicDto(Long id, String title, String description, String actuality, String problems, String[] recommendedSkills) {
         this.id = id;
@@ -18,6 +20,16 @@ public class GeneratedTopicDto {
         this.actuality = actuality;
         this.problems = problems;
         this.recommendedSkills = recommendedSkills;
+    }
+
+    public GeneratedTopicDto(Long id, String title, String description, String actuality, String problems, String[] recommendedSkills, TopicStatus status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.actuality = actuality;
+        this.problems = problems;
+        this.recommendedSkills = recommendedSkills;
+        this.status = status;
     }
 
     public GeneratedTopicDto() {
