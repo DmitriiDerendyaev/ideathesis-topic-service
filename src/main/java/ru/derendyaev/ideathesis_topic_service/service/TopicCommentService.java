@@ -29,10 +29,10 @@ public class TopicCommentService {
         GeneratedTopic topic = generatedTopicRepository.findById(topicId)
                 .orElseThrow(() -> new IllegalArgumentException("Топик не найден"));
 
-        // Проверка статуса топика
-        if (!topic.getStatus().equals(TopicStatus.PENDING) && !topic.getStatus().equals(TopicStatus.NEEDS_REVISION)) {
-            throw new IllegalStateException("Комментарии разрешены только для топиков со статусом PENDING или NEEDS_REVISION");
-        }
+//        // Проверка статуса топика
+//        if (!topic.getStatus().equals(TopicStatus.PENDING) && !topic.getStatus().equals(TopicStatus.NEEDS_REVISION)) {
+//            throw new IllegalStateException("Комментарии разрешены только для топиков со статусом PENDING или NEEDS_REVISION");
+//        }
 
         // Проверка прав доступа
         TopicSelection selection = topicSelectionRepository.findByTopicId(topicId)

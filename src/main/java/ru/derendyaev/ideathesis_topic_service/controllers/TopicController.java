@@ -179,4 +179,12 @@ public class TopicController {
         List<PendingTopicSelectionDto> pendingTopics = topicManagementService.getPendingTopicsForTeacher(guid);
         return ResponseEntity.ok(pendingTopics);
     }
+
+    @GetMapping("/teachers/{teacherGuid}/topics")
+    public ResponseEntity<List<PendingTopicSelectionDto>> getTopicsForTeacher(
+            @PathVariable String teacherGuid) {
+        UUID guid = UUID.fromString(teacherGuid);
+        List<PendingTopicSelectionDto> pendingTopics = topicManagementService.getTopicsForTeacher(guid);
+        return ResponseEntity.ok(pendingTopics);
+    }
 }

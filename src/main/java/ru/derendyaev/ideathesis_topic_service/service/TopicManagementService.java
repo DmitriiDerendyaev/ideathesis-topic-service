@@ -181,7 +181,23 @@ public class TopicManagementService {
     @Transactional(readOnly = true)
     public List<PendingTopicSelectionDto> getPendingTopicsForTeacher(UUID teacherGuid) {
         List<TopicSelection> selections = topicSelectionRepository.findBySupervisorGuidAndTopicStatusIn(
-                teacherGuid, List.of(TopicStatus.PENDING, TopicStatus.NEEDS_REVISION));
+                teacherGuid, List.of(TopicStatus.PENDING, TopicStatus.REVISED));
+        return selections.stream()
+                .map(selection -> {
+                    PendingTopicSelectionDto dto = new PendingTopicSelectionDto();
+                    dto.setTopic(topicMapper.toGeneratedTopicDtoWithStatus(selection.getTopic()));
+                    dto.setStudentGuid(selection.getStudentGuid());
+                    dto.setSupervisorGuid(selection.getSupervisorGuid());
+                    dto.setCreatedAt(selection.getSelectedAt());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingTopicSelectionDto> getTopicsForTeacher(UUID teacherGuid) {
+        List<TopicSelection> selections = topicSelectionRepository.findBySupervisorGuid (
+                teacherGuid);
         return selections.stream()
                 .map(selection -> {
                     PendingTopicSelectionDto dto = new PendingTopicSelectionDto();

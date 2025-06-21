@@ -1,0 +1,125 @@
+@startuml
+!define RECTANGLE class
+skinparam defaultFontSize 12
+skinparam roundCorner 10
+skinparam classAttributeIconSize 10
+
+' Сущности
+entity "competencies" as competencies {
+  *competency_id : int8 <<PK>> <<generated>>
+  --
+  created_at : timestamp
+  competency_name : varchar(2048) <<unique>>
+  description : text
+}
+
+entity "study_areas" as study_areas {
+  *area_id : int8 <<PK>> <<generated>>
+  --
+  created_at : timestamp
+  area_name : varchar(2048) <<unique>>
+  description : text
+}
+
+entity "topic_change_log" as topic_change_log {
+  *log_id : int8 <<PK>> <<generated>>
+  --
+  change_time : timestamp
+  topic_id : int8 <<FK>>
+  student_guid : uuid
+  title : varchar(2048)
+  actuality : text
+  description : text
+  problems : text
+  skills : text
+  status : varchar(255)
+}
+
+entity "user_competencies" as user_competencies {
+  *user_competency_id : int8 <<PK>> <<generated>>
+  --
+  competency_id : int8 <<FK>>
+  created_at : timestamp
+  student_guid : uuid
+}
+
+entity "user_requests" as user_requests {
+  *request_id : int8 <<PK>> <<generated>>
+  --
+  area_id : int8 <<FK>>
+  request_time : timestamp
+  student_guid : uuid
+  request_text : text
+}
+
+entity "user_study_areas" as user_study_areas {
+  *user_study_area_id : int8 <<PK>> <<generated>>
+  --
+  area_id : int8 <<FK>>
+  created_at : timestamp
+  student_guid : uuid
+}
+
+entity "generated_topics" as generated_topics {
+  *topic_id : int8 <<PK>> <<generated>>
+  --
+  created_at : timestamp
+  request_id : int8 <<FK>>
+  title : varchar(2048)
+  actuality : text
+  description : text
+  problems : text
+  status : varchar(255)
+}
+
+entity "request_competencies" as request_competencies {
+  *request_competency_id : int8 <<PK>> <<generated>>
+  --
+  competency_id : int8 <<FK>>
+  created_at : timestamp
+  request_id : int8 <<FK>>
+}
+
+entity "topic_comments" as topic_comments {
+  *comment_id : int8 <<PK>> <<generated>>
+  --
+  created_at : timestamp
+  parent_comment_id : int8 <<FK>>
+  topic_id : int8 <<FK>>
+  author_guid : uuid
+  author_type : varchar(255)
+  comment_text : text
+}
+
+entity "topic_selections" as topic_selections {
+  *selection_id : int8 <<PK>> <<generated>>
+  --
+  selected_at : timestamp
+  topic_id : int8 <<FK>>
+  student_guid : uuid
+  supervisor_guid : uuid
+}
+
+entity "topic_skills" as topic_skills {
+  *topic_skill_id : int8 <<PK>> <<generated>>
+  --
+  competency_id : int8 <<FK>>
+  created_at : timestamp
+  topic_id : int8 <<FK>>
+}
+
+' Связи с указанием внешних ключей
+competencies ||--o{ user_competencies : competency_id
+competencies ||--o{ request_competencies : competency_id
+competencies ||--o{ topic_skills : competency_id
+study_areas ||--o{ user_requests : area_id
+study_areas ||--o{ user_study_areas : area_id
+user_requests ||--o{ generated_topics : request_id
+user_requests ||--o{ request_competencies : request_id
+generated_topics ||--o{ topic_change_log : topic_id
+generated_topics ||--o{ topic_comments : topic_id
+generated_topics ||--o{ topic_selections : topic_id
+generated_topics ||--o{ topic_skills : topic_id
+topic_comments ||--o{ topic_comments : parent_comment_id
+
+@enduml
